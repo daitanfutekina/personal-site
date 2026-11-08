@@ -56,7 +56,7 @@ var FIELD_FRAG = '#version 300 es\nprecision highp float;\n' +
 ' vec2 cell=floor(gl_FragCoord.xy);\n' +
 ' vec2 P=vec2(cell.x+.5,uGrid.y-cell.y-.5)*uCell;\n' + // y down, cell centre
 ' vec2 s=uCell/4.;\n' +
-' vec2 ab=vec2(uCell.x*2.4,uCell.y*.9);\n' + // wide diagonal offset: a few-glyph sheen band on every edge
+' vec2 ab=vec2(uCell.x*.45,uCell.y*.2);\n' + // small offset: only the edge glyph itself is tinted
 ' o=vec4(blur(P,s),blur(P-ab,s),blur(P+ab,s),1.);\n' +
 '}';
 
@@ -72,9 +72,11 @@ var GLYPH_FRAG = '#version 300 es\nprecision highp float;\n' +
 // Oil-slick edges: hue runs continuously through the palette loop across the fringe
 // (signed left/right difference), drifting along the screen and over time.
 ' float fr=clamp((t.g-t.b)*3.,-1.,1.);\n' +
-' float hu=fract(fr*.7+(cell.x*.011+cell.y*.019)+uT*.03)*4.;\n' +
+// The hue sweeps across the glyph's own pixels (l = position inside the cell), so one
+// edge character carries the whole sheen, like light on an oil film.
+' float hu=fract(l.x*.55+l.y*.4+fr*.25+(cell.x*.011+cell.y*.019)+uT*.08)*4.;\n' +
 ' int i=int(hu);vec3 pc=mix(PAL[i],PAL[(i+1)%4],fract(hu));\n' +
-' vec3 col=mix(vec3(.9)*(.55+.45*sqrt(g)),pc,smoothstep(.05,.5,abs(fr))*.75);\n' +
+' vec3 col=mix(vec3(.9)*(.55+.45*sqrt(g)),pc,smoothstep(.3,.6,abs(fr))*.9);\n' +
 ' o=vec4(col*m,1.);\n' +
 '}';
 
