@@ -102,25 +102,26 @@
   .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
     background: rgba(0,0,0,.6); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s; }
   .modal.open { opacity: 1; pointer-events: auto; }
-  .term { --c: var(--green); position: relative; width: min(560px, 100%); padding: 16px 18px 18px; font: 13px var(--mono); color: #e9eef2;
-    background: linear-gradient(color-mix(in srgb, var(--c) 9%, transparent) 1px, transparent 1px) 0 0 / 100% 4px, linear-gradient(180deg, #07090b, #0c0f12);
-    border: 2px solid var(--c); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 25%, transparent);
+  .term { --c: var(--green); position: relative; width: min(540px, 100%); padding: 26px 28px 24px; color: #eef1f3;
+    background: #111417; border: 1px solid #2c3338; border-top: 4px solid var(--c); border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.6);
     transform: translateY(14px) scale(.98); transition: transform .28s cubic-bezier(.2,.85,.25,1); }
   .modal.open .term { transform: none; }
-  .term .path { margin-bottom: 12px; padding-right: 26px; }
-  .term label { display: block; margin: 12px 0 5px; color: var(--c); font-weight: 700; font-size: 11px; }
-  .term label::before { content: "> "; color: color-mix(in srgb, var(--c) 55%, #000); }
-  .term input, .term textarea { width: 100%; padding: 9px 10px; font: 13px var(--mono); color: #fff; background: #000;
-    border: 1px solid color-mix(in srgb, var(--c) 40%, #000); border-radius: 0; outline: none; caret-color: var(--c); }
-  .term input:focus, .term textarea:focus { border-color: var(--c); box-shadow: inset 3px 0 0 var(--c); }
+  .term h2 { margin: 0 0 4px; font-stretch: 112%; font-weight: 700; font-size: 24px; }
+  .term .sub { margin: 0 0 6px; color: #9aa5ad; font-size: 14px; }
+  .term label { display: block; margin: 16px 0 6px; color: #c9d1d6; font-weight: 600; font-size: 13px; }
+  .term input, .term textarea { width: 100%; padding: 11px 12px; font: 15px "Archivo", system-ui, sans-serif; color: #fff; background: #0a0c0e;
+    border: 1px solid #2f373d; border-radius: 8px; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .term input:focus, .term textarea:focus { border-color: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 22%, transparent); }
   .term textarea { min-height: 150px; resize: vertical; }
-  .term .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
-  .term .status { font-size: 12px; color: #9aa7af; min-height: 1em; }
+  .term .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
+  .term .status { font-size: 13px; color: #9aa7af; min-height: 1em; }
   .term .status.ok { color: var(--c); } .term .status.err { color: var(--red); }
-  .term button { font: 700 12px var(--mono); padding: 10px 18px; color: var(--ink); background: var(--c); border: 0; cursor: pointer; letter-spacing: .04em; }
+  .term button { font: 700 14px "Archivo", system-ui, sans-serif; padding: 11px 22px; color: var(--ink); background: var(--c); border: 0; border-radius: 8px; cursor: pointer; }
+  .term button:hover { filter: brightness(1.08); }
   .term button:disabled { opacity: .5; cursor: progress; }
-  .term .x { position: absolute; top: 8px; right: 10px; padding: 2px 6px; background: none; color: #9aa7af; font-size: 16px; }
-  .term .x:hover { color: #fff; }
+  .term .x { position: absolute; top: 12px; right: 14px; padding: 2px 8px; background: none; color: #8b969d; font-size: 22px; font-weight: 400; }
+  .term .x:hover { color: #fff; filter: none; }
   .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
   @media (max-width: 760px) { .tab-label { font-size: 11px; } .bottom { grid-template-columns: 1fr 1fr; } .featured { display: none; } }
@@ -217,15 +218,16 @@
 <div class="modal" id="contact" aria-hidden="true">
   <form class="term" role="dialog" aria-modal="true" aria-labelledby="contact-title" novalidate>
     <button type="button" class="x" aria-label="Close">&times;</button>
-    <div class="path"><span id="contact-title"><b>~/contact</b> $ mail liam<span class="blink">_</span></span><span>SECURE FORM</span></div>
-    <label for="c-from">your email (so I can reply)</label>
+    <h2 id="contact-title">Send me a message</h2>
+    <p class="sub">Questions, bug reports, or something you found on the site.</p>
+    <label for="c-from">Your email (so I can reply)</label>
     <input id="c-from" name="from" type="email" maxlength="200" autocomplete="email" required>
-    <label for="c-subject">subject</label>
+    <label for="c-subject">Subject</label>
     <input id="c-subject" name="subject" type="text" maxlength="150" required>
-    <label for="c-message">message</label>
+    <label for="c-message">Message</label>
     <textarea id="c-message" name="message" maxlength="5000" required></textarea>
     <div class="hp" aria-hidden="true"><label>Leave empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
-    <div class="row"><span class="status" role="status"></span><button type="submit">SEND</button></div>
+    <div class="row"><span class="status" role="status"></span><button type="submit">Send message</button></div>
   </form>
 </div>
 
