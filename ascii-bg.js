@@ -56,8 +56,8 @@ var FIELD_FRAG = '#version 300 es\nprecision highp float;\n' +
 ' vec2 cell=floor(gl_FragCoord.xy);\n' +
 ' vec2 P=vec2(cell.x+.5,uGrid.y-cell.y-.5)*uCell;\n' + // y down, cell centre
 ' vec2 s=uCell/4.;\n' +
-' float ab=uCell.x*.9;\n' +
-' o=vec4(blur(P,s),blur(P-vec2(ab,0),s),blur(P+vec2(ab,0),s),1.);\n' +
+' vec2 ab=vec2(uCell.x*2.4,uCell.y*.9);\n' + // wide diagonal offset: a few-glyph sheen band on every edge
+' o=vec4(blur(P,s),blur(P-ab,s),blur(P+ab,s),1.);\n' +
 '}';
 
 var GLYPH_FRAG = '#version 300 es\nprecision highp float;\n' +
@@ -69,14 +69,12 @@ var GLYPH_FRAG = '#version 300 es\nprecision highp float;\n' +
 ' float g=(t.r*2.+t.g+t.b)/4.;\n' +
 ' float idx=floor(clamp(g,0.,.9999)*uN);\n' +
 ' float m=texture(uAtlas,vec2((idx+l.x)/uN,l.y)).r;\n' +
-// Palette pick: a coarse spatial hash plus slow drift, so all four colours show at once;
-// the two sides of an edge (left/right fringe) take opposite colours.
-' vec2 zq=floor(cell/vec2(14.,7.));\n' +
-' float zh=fract(sin(dot(zq,vec2(127.1,311.7)))*43758.5)*4.+uT*.05;\n' +
+// Oil-slick edges: hue runs continuously through the palette loop across the fringe
+// (signed left/right difference), drifting along the screen and over time.
 ' float fr=clamp((t.g-t.b)*3.,-1.,1.);\n' +
-' int i=int(mod(floor(zh)+(fr>0.?0.:2.),4.));\n' +
-' vec3 pc=mix(PAL[i],PAL[(i+1)%4],smoothstep(.7,1.,fract(zh)));\n' +
-' vec3 col=mix(vec3(.9)*(.55+.45*sqrt(g)),pc,smoothstep(.2,.75,abs(fr))*.85);\n' +
+' float hu=fract(fr*.7+(cell.x*.011+cell.y*.019)+uT*.03)*4.;\n' +
+' int i=int(hu);vec3 pc=mix(PAL[i],PAL[(i+1)%4],fract(hu));\n' +
+' vec3 col=mix(vec3(.9)*(.55+.45*sqrt(g)),pc,smoothstep(.05,.5,abs(fr))*.75);\n' +
 ' o=vec4(col*m,1.);\n' +
 '}';
 
