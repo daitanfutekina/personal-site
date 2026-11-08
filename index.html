@@ -9,26 +9,31 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; --ink:#141414; --line:#2a2a2a;
-          --tabh: clamp(56px, 11vh, 110px); --lip: 40px; --mono: "JetBrains Mono", Consolas, monospace; }
+          --tabh: clamp(56px, 11vh, 110px); --lip: 20px; --mono: "JetBrains Mono", Consolas, monospace; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #000; color: #f2f2f2; font-family: "Archivo", system-ui, sans-serif; overflow: hidden; }
   #bg { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; pointer-events: none; }
 
   /* ---- tabs ---- */
-  .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: #000; }
   .tab { position: relative; --c: var(--red); }
   .tab:nth-child(2) { --c: var(--green); }
   .tab:nth-child(3) { --c: var(--blue); }
   .tab:nth-child(4) { --c: var(--yellow); }
-  .tab-label { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; height: var(--tabh);
-    background: var(--c); color: var(--ink); text-decoration: none; text-transform: uppercase; text-align: center;
-    font-stretch: 125%; font-weight: 700; font-size: clamp(14px, 1.5vw, 26px); letter-spacing: .01em;
-    border: 3px solid var(--line); border-left-width: 0; }
-  .tab:first-child .tab-label { border-left-width: 3px; }
+  .tab-label { position: relative; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; height: var(--tabh);
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.07) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, color-mix(in srgb, var(--c) 88%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 82%, #000));
+    color: var(--ink); text-decoration: none; text-transform: uppercase; text-align: center;
+    font-stretch: 125%; font-weight: 700; font-size: clamp(14px, 1.4vw, 24px); letter-spacing: .01em;
+    transition: filter .15s; }
+  .tab-label small { font: 500 clamp(9px, .68vw, 12px) var(--mono); text-transform: none; letter-spacing: .02em; opacity: .62; }
+  .tab-label::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #000; opacity: .35; }
+  .tab:hover .tab-label, .tab.open .tab-label { filter: brightness(1.06) saturate(1.05); }
 
   /* ---- dropdown: slides out from under the tab; only the handle lip shows at rest ---- */
-  .clip { position: absolute; top: calc(var(--tabh) - 3px); left: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 2; }
-  .drawer { position: relative; pointer-events: auto; transform: translateY(calc(-100% + var(--lip) + 3px));
+  .clip { position: absolute; top: var(--tabh); left: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 2; }
+  .drawer { position: relative; pointer-events: auto; transform: translateY(calc(-100% + var(--lip)));
     transition: transform 380ms cubic-bezier(.2,.85,.25,1); }
   .tab.open .drawer { transform: translateY(0); }
 
@@ -59,10 +64,15 @@
   .tab.open .entry { animation: in .28s cubic-bezier(.2,.85,.25,1) forwards; animation-delay: calc(140ms + var(--i) * 35ms); }
   @keyframes in { to { opacity: 1; transform: none; } }
 
-  .front { position: relative; height: var(--lip); background: color-mix(in srgb, var(--c) 78%, #000);
-    border: 3px solid var(--line); border-top: 2px solid var(--c); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; }
-  .handle { width: 46%; height: 16px; border-radius: 10px; background: var(--c); border: 3px solid var(--line);
-    box-shadow: inset 0 -4px 0 #0003, 0 2px 0 #0004; }
+  /* Lip: a slim chamfered strip with a grip and a chevron that flips when open. */
+  .front { position: relative; height: var(--lip); margin: 0 10%; display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: color-mix(in srgb, var(--c) 72%, #000);
+    clip-path: polygon(0 0, 100% 0, calc(100% - 16px) 100%, 16px 100%); }
+  .handle { width: 56px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--c) 30%, #000);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 55%, #000); }
+  .front::after { content: ""; width: 7px; height: 7px; border-right: 2px solid #000; border-bottom: 2px solid #000; opacity: .55;
+    transform: translateY(-2px) rotate(45deg); transition: transform .3s; }
+  .tab.open .front::after { transform: translateY(2px) rotate(-135deg); }
 
   /* ---- hero ---- */
   .hero { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; text-align: center; pointer-events: none; padding-top: var(--tabh); }
@@ -96,7 +106,7 @@
 
 <nav class="tabs">
   <div class="tab">
-    <a class="tab-label" href="#">Resume</a>
+    <a class="tab-label" href="#">Resume<small>~/resume</small></a>
     <div class="clip"><div class="drawer"><div class="panel">
       <div class="path"><span><b>~/resume</b> $ ls<span class="blink">_</span></span><span>REV 2026.11</span></div>
       <div class="group"><h3>documents</h3>
@@ -111,7 +121,7 @@
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
-    <a class="tab-label" href="#">Academic &amp; Resources</a>
+    <a class="tab-label" href="#">Academic &amp; Resources<small>~/academic</small></a>
     <div class="clip"><div class="drawer"><div class="panel">
       <div class="path"><span><b>~/academic</b> $ ls<span class="blink">_</span></span><span>07 ITEMS</span></div>
       <div class="group"><h3>textbooks</h3>
@@ -130,7 +140,7 @@
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
-    <a class="tab-label" href="#">Games &amp; Software</a>
+    <a class="tab-label" href="#">Games &amp; Software<small>~/builds</small></a>
     <div class="clip"><div class="drawer"><div class="panel">
       <div class="path"><span><b>~/builds</b> $ ls<span class="blink">_</span></span><span>06 ITEMS</span></div>
       <div class="group"><h3>software</h3>
@@ -146,7 +156,7 @@
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
-    <a class="tab-label" href="#">Misc</a>
+    <a class="tab-label" href="#">Misc<small>~/misc</small></a>
     <div class="clip"><div class="drawer"><div class="panel">
       <div class="path"><span><b>~/misc</b> $ ls<span class="blink">_</span></span><span>05 ITEMS</span></div>
       <div class="group"><h3>writing</h3>

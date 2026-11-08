@@ -69,10 +69,14 @@ var GLYPH_FRAG = '#version 300 es\nprecision highp float;\n' +
 ' float g=(t.r*2.+t.g+t.b)/4.;\n' +
 ' float idx=floor(clamp(g,0.,.9999)*uN);\n' +
 ' float m=texture(uAtlas,vec2((idx+l.x)/uN,l.y)).r;\n' +
-' float ph=uT*.04,sf=smoothstep(0.,1.,fract(ph));int i=int(mod(floor(ph),4.));\n' +
-' vec3 ca=mix(PAL[i],PAL[(i+1)%4],sf),cb=mix(PAL[(i+2)%4],PAL[(i+3)%4],sf);\n' +
+// Palette pick: a coarse spatial hash plus slow drift, so all four colours show at once;
+// the two sides of an edge (left/right fringe) take opposite colours.
+' vec2 zq=floor(cell/vec2(14.,7.));\n' +
+' float zh=fract(sin(dot(zq,vec2(127.1,311.7)))*43758.5)*4.+uT*.05;\n' +
 ' float fr=clamp((t.g-t.b)*3.,-1.,1.);\n' +
-' vec3 col=mix(vec3(.9)*(.55+.45*sqrt(g)),fr>0.?ca:cb,smoothstep(.2,.75,abs(fr))*.85);\n' +
+' int i=int(mod(floor(zh)+(fr>0.?0.:2.),4.));\n' +
+' vec3 pc=mix(PAL[i],PAL[(i+1)%4],smoothstep(.7,1.,fract(zh)));\n' +
+' vec3 col=mix(vec3(.9)*(.55+.45*sqrt(g)),pc,smoothstep(.2,.75,abs(fr))*.85);\n' +
 ' o=vec4(col*m,1.);\n' +
 '}';
 
