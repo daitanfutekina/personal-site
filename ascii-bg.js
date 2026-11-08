@@ -1,7 +1,7 @@
 /*
  * ascii-bg.js - animated ASCII crystal background (WebGL2, no dependencies).
  *
- * Pass 1 renders a ebbing field of lit pebble-shaped blobs into a tiny framebuffer
+ * Pass 1 renders a ebbing field of lit, hard-edged crystal shards into a tiny framebuffer
  * (one texel per character cell). Pass 2 draws glyphs from a canvas-generated
  * atlas, with edge-aware glyphs (/ \ | - _) and colour fringing on edges only.
  *
@@ -33,21 +33,24 @@
   '  vec2 hc=h22(id+31.7);\n' +
   '  float u=uT/(mix(7.,13.,hc.x)/speed)+hc.y,cyc=mod(floor(u),64.),x=fract(u);\n' + // life cycle: grow, hold, dissolve
   '  vec2 ha=h22(id+cyc*vec2(5.3,2.9)+57.1),hb=h22(id+cyc*vec2(3.1,6.7)+11.3);\n' +
-  '  float e=smoothstep(0.,.3,x)*(1.-smoothstep(.62,1.,x))*step(ha.x,.78);\n' +
+  '  float e=smoothstep(0.,.3,x)*(1.-smoothstep(.62,1.,x))*step(ha.x,.86);\n' +
   '  if(e<.002)continue;\n' +
-  '  vec2 c=g+.5+(ha.yx-.5)*.3+.04*vec2(sin(uT*.2*speed+hc.y*6.3),cos(uT*.17*speed+hc.x*6.3));\n' +
-  '  vec2 d=(fp-c)*size;float rot=(hb.y-.5)*.5,cs=cos(rot),sn=sin(rot);\n' +
-  '  d=vec2(cs*d.x+sn*d.y,-sn*d.x+cs*d.y);\n' +
-  '  vec2 r=vec2(mix(190.,300.,hb.x),0.);r.y=r.x*mix(.36,.5,h21(id+cyc*1.7+8.));\n' +
-  '  r*=mix(.45,1.,smoothstep(0.,.5,e));\n' + // swell
-  '  vec2 w=(fp-c)*size;\n' +
-  '  vec2 uv=d/r+(vec2(vn(P*.006+seed+uT*.03),vn(P*.006+seed+5.-uT*.03))-.5)*.14;\n' +
-  '  float dd=pow(pow(abs(uv.x),2.4)+pow(abs(uv.y),2.4),1./2.4);\n' + // pebble / lens outline
+  '  vec2 c=g+.5+(ha.yx-.5)*.26+.03*vec2(sin(uT*.2*speed+hc.y*6.3),cos(uT*.17*speed+hc.x*6.3));\n' +
+  '  vec2 d=(fp-c)*size;\n' +
+  '  vec2 r=vec2(mix(200.,310.,hb.x),0.);r.y=r.x*mix(.38,.58,hb.y);\n' +
+  '  r*=mix(.4,1.,smoothstep(0.,.5,e));\n' + // swell
+  '  vec2 uu=d/r;float rot=(ha.y-.5)*.7,dd=-9.,fh=0.,fs=1.;vec2 fn=vec2(0,-1);\n' +
+  // Convex polygon = intersection of 6 half-planes. The dominant plane is the lit face.
+  '  for(int k=0;k<6;k++){\n' +
+  '   vec2 hk=h22(id+vec2(float(k)*3.7,float(k)*1.9)+cyc*vec2(1.3,.7));\n' +
+  '   float a=(float(k)+(hk.x-.5)*.55)*1.0472+rot;vec2 nk=vec2(cos(a),sin(a));\n' +
+  '   float tk=dot(uu,nk)/mix(.5,1.05,hk.y);\n' +
+  '   if(tk>dd){dd=tk;fn=nk;fs=.5+.9*h21(hk+float(k));}\n' +
+  '  }\n' +
   '  if(dd>=1.)continue;\n' +
-  '  float mass=1.-smoothstep(.955,1.,dd);\n' +
-  '  float z=sqrt(max(1.-dd*dd,0.));\n' +
-  '  vec3 n=normalize(vec3(sign(uv)*pow(abs(uv),vec2(2.))*1.5,z+.1));\n' +
-  '  float lit=.1+.95*pow(max(dot(n,normalize(vec3(-.2,-.6,.75))),0.),1.1);\n' +
+  '  float mass=1.-smoothstep(.97,1.,dd);\n' +
+  '  vec3 n=normalize(vec3(fn*fs,1.));\n' +
+  '  float lit=(.1+.95*pow(max(dot(n,normalize(vec3(-.45,-.55,.7))),0.),1.1))*(.9+.1*(1.-dd));\n' +
   // Dissolve: sparse dots that thin out slowly.
   '  float k=smoothstep(0.,.6,e),tk=uT*.25,fk=smoothstep(0.,1.,fract(tk));\n' +
   '  vec2 tid=floor(P/uCell);\n' +

@@ -10,7 +10,7 @@
      voice that suits the monospaced ASCII backdrop without looking like a default UI font. -->
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <style>
-  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; --tabh: clamp(56px, 11vh, 110px); --drawer: 300px; --lip: 40px; }
+  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; --tabh: clamp(56px, 11vh, 110px); --drawer: 250px; --lip: 40px; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #000; color: #f2f2f2; font-family: "Archivo", system-ui, sans-serif; overflow: hidden; }
   #bg { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; pointer-events: none; }
@@ -34,31 +34,16 @@
     transition: transform 350ms cubic-bezier(.2,.85,.25,1); display: flex; flex-direction: column; }
   .tab.open .drawer { transform: translateY(0); }
 
-  .tray { position: relative; flex: 1; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; gap: 0; padding: 0 22px;
-    background: linear-gradient(#000a 0, #0000 45%), color-mix(in srgb, var(--c) 32%, #0d0d0d);
-    box-shadow: inset 14px 0 18px -8px #000c, inset -14px 0 18px -8px #000c, inset 0 22px 24px -10px #000d;
-    border-left: 4px solid color-mix(in srgb, var(--c) 55%, #000); border-right: 4px solid color-mix(in srgb, var(--c) 55%, #000); }
-  .tray::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: linear-gradient(#0000, #0008); }
-
-  /* manila folders standing in the drawer */
-  .folder { position: relative; flex: 0 0 auto; width: 23%; max-width: 150px; height: 190px; margin: 0 -5px; color: #3b2a10; text-decoration: none;
-    transition: transform .18s ease; display: block; }
-  .folder:nth-child(1) { transform: translateY(14px); }
-  .folder:nth-child(2) { transform: translateY(0); }
-  .folder:nth-child(3) { transform: translateY(20px); }
-  .folder:nth-child(4) { transform: translateY(6px); }
-  .folder:hover, .folder:focus-visible { transform: translateY(-12px); outline: none; }
-  .folder .body { position: absolute; left: 0; right: 0; bottom: 0; top: 22px; background: linear-gradient(#f0d89c, #e2bf7c);
-    border: 2px solid #b98f45; border-radius: 4px 8px 4px 4px; box-shadow: 3px 0 6px #0006; padding: 34px 10px 0; font-weight: 700;
-    font-stretch: 112%; font-size: 14px; line-height: 1.15; text-transform: uppercase; }
-  .folder .body::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: #b98f4577; }
-  .folder .label { position: absolute; top: 0; height: 26px; width: 58%; left: 6%; background: #f0d89c; border: 2px solid #b98f45; border-bottom: 0;
-    border-radius: 6px 6px 0 0; font-size: 11px; font-weight: 700; font-stretch: 112%; text-transform: uppercase; padding: 5px 6px; white-space: nowrap; overflow: hidden; }
-  .folder:nth-child(even) .label { left: 36%; }
+  .tray { position: relative; flex: 1; display: flex; flex-direction: column; padding: 6px 0; overflow: hidden;
+    background: color-mix(in srgb, var(--c) 16%, #0b0b0b); border: 2px solid var(--c); border-top: 0; }
+  .item { display: flex; align-items: center; flex: 1 1 0; min-height: 0; padding: 0 22px; color: color-mix(in srgb, var(--c) 35%, #fff);
+    text-decoration: none; text-transform: uppercase; font-stretch: 112%; font-weight: 600; font-size: 14px; letter-spacing: .06em;
+    border-bottom: 1px solid color-mix(in srgb, var(--c) 28%, #0b0b0b); transition: background .12s ease, box-shadow .12s ease, color .12s ease; }
+  .item:last-child { border-bottom: 0; }
+  .item:hover, .item:focus-visible { outline: none; color: #fff; background: color-mix(in srgb, var(--c) 30%, #0b0b0b); box-shadow: inset 5px 0 0 var(--c); }
 
   .front { position: relative; flex: 0 0 var(--lip); height: var(--lip); background: color-mix(in srgb, var(--c) 78%, #000);
-    border: 3px solid #2a2a2a; border-top-color: color-mix(in srgb, var(--c) 40%, #000); border-radius: 0 0 14px 14px;
-    box-shadow: 0 8px 18px #000a; display: flex; align-items: center; justify-content: center; }
+    border: 3px solid #2a2a2a; border-top: 2px solid var(--c); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; }
   .handle { width: 46%; height: 16px; border-radius: 10px; background: var(--c); border: 3px solid #2a2a2a;
     box-shadow: inset 0 -4px 0 #0003, 0 2px 0 #0004; }
 
@@ -86,7 +71,7 @@
     border: 3px solid #3a3a3a; border-radius: 14px; font-stretch: 112%; font-weight: 700; font-size: clamp(14px, 1.6vw, 26px); text-transform: uppercase; text-decoration: none; }
   .logo { flex: 0 0 auto; width: clamp(96px, 9vw, 160px); height: clamp(96px, 9vw, 160px); border-radius: 50%; background: var(--red); display: grid; place-items: center; }
   .logo img { width: 84%; height: 84%; object-fit: contain; }
-  @media (max-width: 760px) { .tab-label { font-size: 11px; } .featured { display: none; } .folder .body { font-size: 11px; } }
+  @media (max-width: 760px) { .tab-label { font-size: 11px; } .featured { display: none; } }
 </style>
 </head>
 <body>
@@ -96,35 +81,35 @@
   <div class="tab">
     <a class="tab-label" href="#">Resume</a>
     <div class="clip"><div class="drawer"><div class="tray">
-      <a class="folder" href="#"><span class="label">Resume</span><span class="body">Download PDF</span></a>
-      <a class="folder" href="#"><span class="label">Work</span><span class="body">Experience</span></a>
-      <a class="folder" href="#"><span class="label">School</span><span class="body">Education</span></a>
-      <a class="folder" href="#"><span class="label">Tools</span><span class="body">Skills</span></a>
+      <a class="item" href="#">Download PDF</a>
+      <a class="item" href="#">Experience</a>
+      <a class="item" href="#">Education</a>
+      <a class="item" href="#">Skills</a>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
     <a class="tab-label" href="#">Academic &amp; Resources</a>
     <div class="clip"><div class="drawer"><div class="tray">
-      <a class="folder" href="#"><span class="label">Notes</span><span class="body">Course notes</span></a>
-      <a class="folder" href="#"><span class="label">Study</span><span class="body">Study guides</span></a>
-      <a class="folder" href="#"><span class="label">Papers</span><span class="body">Publications</span></a>
+      <a class="item" href="#">Course notes</a>
+      <a class="item" href="#">Study guides</a>
+      <a class="item" href="#">Publications</a>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
     <a class="tab-label" href="#">Games &amp; Software</a>
     <div class="clip"><div class="drawer"><div class="tray">
-      <a class="folder" href="#"><span class="label">Code</span><span class="body">Projects</span></a>
-      <a class="folder" href="#"><span class="label">Play</span><span class="body">Games</span></a>
-      <a class="folder" href="#"><span class="label">Open</span><span class="body">Open source</span></a>
-      <a class="folder" href="#"><span class="label">Kit</span><span class="body">Tools</span></a>
+      <a class="item" href="#">Projects</a>
+      <a class="item" href="#">Games</a>
+      <a class="item" href="#">Open source</a>
+      <a class="item" href="#">Tools</a>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
     <a class="tab-label" href="#">Misc</a>
     <div class="clip"><div class="drawer"><div class="tray">
-      <a class="folder" href="#"><span class="label">Blog</span><span class="body">Blog</span></a>
-      <a class="folder" href="#"><span class="label">Photo</span><span class="body">Photography</span></a>
-      <a class="folder" href="#"><span class="label">Hello</span><span class="body">Contact</span></a>
+      <a class="item" href="#">Blog</a>
+      <a class="item" href="#">Photography</a>
+      <a class="item" href="#">Contact</a>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
 </nav>

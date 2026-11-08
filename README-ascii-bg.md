@@ -1,6 +1,6 @@
 # ascii-bg
 
-Animated ASCII background: lit, pebble-shaped blobs that swell, hold and dissolve into dots. Vanilla JS + WebGL2, no build step, no dependencies.
+Animated ASCII background: lit, hard-edged crystal shards that swell, hold and dissolve into dots. Vanilla JS + WebGL2, no build step, no dependencies.
 
 ## Use
 
