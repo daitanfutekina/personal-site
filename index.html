@@ -6,45 +6,62 @@
 <title>Liam Grant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Archivo: a grotesque with a width axis. Its expanded cut gives the tabs and name a wide, poster-like
-     voice that suits the monospaced ASCII backdrop without looking like a default UI font. -->
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; --tabh: clamp(56px, 11vh, 110px); --drawer: 250px; --lip: 40px; }
+  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; --ink:#141414; --line:#2a2a2a;
+          --tabh: clamp(56px, 11vh, 110px); --lip: 40px; --mono: "JetBrains Mono", Consolas, monospace; }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: #000; color: #f2f2f2; font-family: "Archivo", system-ui, sans-serif; overflow: hidden; }
   #bg { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; pointer-events: none; }
 
-  /* ---- tabs + drawers ---- */
+  /* ---- tabs ---- */
   .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); }
   .tab { position: relative; --c: var(--red); }
   .tab:nth-child(2) { --c: var(--green); }
   .tab:nth-child(3) { --c: var(--blue); }
   .tab:nth-child(4) { --c: var(--yellow); }
   .tab-label { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; height: var(--tabh);
-    background: var(--c); color: #141414; text-decoration: none; text-transform: uppercase; text-align: center;
+    background: var(--c); color: var(--ink); text-decoration: none; text-transform: uppercase; text-align: center;
     font-stretch: 125%; font-weight: 700; font-size: clamp(14px, 1.5vw, 26px); letter-spacing: .01em;
-    border: 3px solid #2a2a2a; border-left-width: 0; }
+    border: 3px solid var(--line); border-left-width: 0; }
   .tab:first-child .tab-label { border-left-width: 3px; }
 
-  /* The clip hides the drawer above the tab's bottom edge; only the front lip shows at rest. */
-  .clip { position: absolute; top: calc(var(--tabh) - 3px); left: 0; width: 100%; height: calc(var(--drawer) + var(--lip));
-    overflow: hidden; pointer-events: none; z-index: 2; }
-  .drawer { position: absolute; inset: 0; pointer-events: auto; transform: translateY(calc(-100% + var(--lip) + 3px));
-    transition: transform 350ms cubic-bezier(.2,.85,.25,1); display: flex; flex-direction: column; }
+  /* ---- dropdown: slides out from under the tab; only the handle lip shows at rest ---- */
+  .clip { position: absolute; top: calc(var(--tabh) - 3px); left: 0; width: 100%; overflow: hidden; pointer-events: none; z-index: 2; }
+  .drawer { position: relative; pointer-events: auto; transform: translateY(calc(-100% + var(--lip) + 3px));
+    transition: transform 380ms cubic-bezier(.2,.85,.25,1); }
   .tab.open .drawer { transform: translateY(0); }
 
-  .tray { position: relative; flex: 1; display: flex; flex-direction: column; padding: 6px 0; overflow: hidden;
-    background: color-mix(in srgb, var(--c) 16%, #0b0b0b); border: 2px solid var(--c); border-top: 0; }
-  .item { display: flex; align-items: center; flex: 1 1 0; min-height: 0; padding: 0 22px; color: color-mix(in srgb, var(--c) 35%, #fff);
-    text-decoration: none; text-transform: uppercase; font-stretch: 112%; font-weight: 600; font-size: 14px; letter-spacing: .06em;
-    border-bottom: 1px solid color-mix(in srgb, var(--c) 28%, #0b0b0b); transition: background .12s ease, box-shadow .12s ease, color .12s ease; }
-  .item:last-child { border-bottom: 0; }
-  .item:hover, .item:focus-visible { outline: none; color: #fff; background: color-mix(in srgb, var(--c) 30%, #0b0b0b); box-shadow: inset 5px 0 0 var(--c); }
+  .panel { position: relative; padding: 14px 16px 16px; color: #e9eef2; font-family: var(--mono); font-size: 13px;
+    background:
+      linear-gradient(color-mix(in srgb, var(--c) 9%, transparent) 1px, transparent 1px) 0 0 / 100% 4px,
+      linear-gradient(180deg, #07090b, #0c0f12);
+    border: 2px solid var(--c); border-top: 0; box-shadow: inset 0 0 0 1px #000, 0 0 24px color-mix(in srgb, var(--c) 22%, transparent); }
+  .panel::before, .panel::after { content: ""; position: absolute; width: 12px; height: 12px; border: 2px solid var(--c); }
+  .panel::before { left: 6px; bottom: 6px; border-right: 0; border-top: 0; }
+  .panel::after { right: 6px; bottom: 6px; border-left: 0; border-top: 0; }
 
-  .front { position: relative; flex: 0 0 var(--lip); height: var(--lip); background: color-mix(in srgb, var(--c) 78%, #000);
-    border: 3px solid #2a2a2a; border-top: 2px solid var(--c); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; }
-  .handle { width: 46%; height: 16px; border-radius: 10px; background: var(--c); border: 3px solid #2a2a2a;
+  .path { display: flex; justify-content: space-between; color: color-mix(in srgb, var(--c) 80%, #fff); font-size: 11px;
+    padding-bottom: 8px; margin-bottom: 6px; border-bottom: 1px dashed color-mix(in srgb, var(--c) 45%, transparent); }
+  .path b { font-weight: 700; color: var(--c); }
+  .blink { animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .group { margin-top: 10px; }
+  .group h3 { margin: 0 0 4px; font: 700 11px var(--mono); color: var(--c); letter-spacing: .04em; }
+  .group h3::before { content: "> "; color: color-mix(in srgb, var(--c) 55%, #000); }
+  .entry { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 10px;
+    padding: 5px 8px 5px 14px; color: #dfe6ea; text-decoration: none; border-left: 2px solid transparent;
+    opacity: 0; transform: translateX(-8px); transition: background .12s, color .12s, border-color .12s; }
+  .entry span:last-child { font-size: 10px; color: #7d8a93; letter-spacing: .05em; }
+  .entry:hover, .entry:focus-visible { outline: none; background: var(--c); color: var(--ink); border-left-color: #fff; }
+  .entry:hover span:last-child, .entry:focus-visible span:last-child { color: var(--ink); }
+  .tab.open .entry { animation: in .28s cubic-bezier(.2,.85,.25,1) forwards; animation-delay: calc(140ms + var(--i) * 35ms); }
+  @keyframes in { to { opacity: 1; transform: none; } }
+
+  .front { position: relative; height: var(--lip); background: color-mix(in srgb, var(--c) 78%, #000);
+    border: 3px solid var(--line); border-top: 2px solid var(--c); border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: center; }
+  .handle { width: 46%; height: 16px; border-radius: 10px; background: var(--c); border: 3px solid var(--line);
     box-shadow: inset 0 -4px 0 #0003, 0 2px 0 #0004; }
 
   /* ---- hero ---- */
@@ -53,25 +70,25 @@
     background: radial-gradient(ellipse at center, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 40%, rgba(0,0,0,0) 72%); }
   .hero div { position: relative; padding: 0 16px; }
   h1 { margin: 0 0 .15em; font-stretch: 125%; font-weight: 800; font-size: clamp(40px, 6.4vw, 104px); line-height: 1; letter-spacing: .01em; color: #fff; text-transform: uppercase; }
-  .hero p { margin: 0; font-weight: 400; font-stretch: 100%; font-size: clamp(16px, 2.4vw, 40px); color: #fff; }
+  .hero p { margin: 0; font-weight: 400; font-size: clamp(16px, 2.4vw, 40px); color: #fff; }
 
-  /* ---- bottom row ---- */
-  .bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; align-items: flex-end; justify-content: space-between;
-    padding: 0 clamp(12px, 2.5vw, 40px) clamp(12px, 2.2vh, 28px); gap: 20px; pointer-events: none; }
+  /* ---- bottom row: equal side columns keep the featured bar dead centre ---- */
+  .bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: grid; grid-template-columns: 1fr minmax(0, 810px) 1fr;
+    align-items: center; gap: 24px; padding: 0 clamp(12px, 2.5vw, 40px) clamp(12px, 2.2vh, 28px); pointer-events: none; }
   .bottom > * { pointer-events: auto; }
-  .icons { display: flex; gap: 14px; flex: 0 0 auto; }
-  .icons a { width: clamp(52px, 4.4vw, 76px); height: clamp(52px, 4.4vw, 76px); display: grid; place-items: center; border-radius: 50%; color: #141414;
+  .icons { justify-self: start; display: flex; gap: 14px; }
+  .icons a { width: clamp(52px, 4.4vw, 76px); height: clamp(52px, 4.4vw, 76px); display: grid; place-items: center; border-radius: 50%; color: var(--ink);
     transition: transform .15s ease; }
   .icons a:hover { transform: translateY(-4px); }
   .icons a:nth-child(1) { background: var(--yellow); }
   .icons a:nth-child(2) { background: var(--blue); border-radius: 12px; }
   .icons a:nth-child(3) { background: var(--green); }
   .icons svg { width: 62%; height: 62%; fill: currentColor; }
-  .featured { flex: 1 1 auto; max-width: 810px; margin: 0 auto; height: clamp(46px, 7vh, 66px); display: grid; place-items: center; background: #d9d9d9; color: #111;
+  .featured { height: clamp(46px, 7vh, 66px); display: grid; place-items: center; background: #d9d9d9; color: #111;
     border: 3px solid #3a3a3a; border-radius: 14px; font-stretch: 112%; font-weight: 700; font-size: clamp(14px, 1.6vw, 26px); text-transform: uppercase; text-decoration: none; }
-  .logo { flex: 0 0 auto; width: clamp(96px, 9vw, 160px); height: clamp(96px, 9vw, 160px); border-radius: 50%; background: var(--red); display: grid; place-items: center; }
+  .logo { justify-self: end; width: clamp(96px, 9vw, 160px); height: clamp(96px, 9vw, 160px); border-radius: 50%; background: var(--red); display: grid; place-items: center; }
   .logo img { width: 84%; height: 84%; object-fit: contain; }
-  @media (max-width: 760px) { .tab-label { font-size: 11px; } .featured { display: none; } }
+  @media (max-width: 760px) { .tab-label { font-size: 11px; } .bottom { grid-template-columns: 1fr 1fr; } .featured { display: none; } }
 </style>
 </head>
 <body>
@@ -80,36 +97,67 @@
 <nav class="tabs">
   <div class="tab">
     <a class="tab-label" href="#">Resume</a>
-    <div class="clip"><div class="drawer"><div class="tray">
-      <a class="item" href="#">Download PDF</a>
-      <a class="item" href="#">Experience</a>
-      <a class="item" href="#">Education</a>
-      <a class="item" href="#">Skills</a>
+    <div class="clip"><div class="drawer"><div class="panel">
+      <div class="path"><span><b>~/resume</b> $ ls<span class="blink">_</span></span><span>REV 2026.11</span></div>
+      <div class="group"><h3>documents</h3>
+        <a class="entry" href="#"><span>Resume (one page)</span><span>PDF</span></a>
+        <a class="entry" href="#"><span>Full CV</span><span>PDF</span></a>
+      </div>
+      <div class="group"><h3>record</h3>
+        <a class="entry" href="#"><span>Experience</span><span>04 ROLES</span></a>
+        <a class="entry" href="#"><span>Education: CompE, Michigan State</span><span>B.S.</span></a>
+        <a class="entry" href="#"><span>Skills &amp; tools</span><span>LIST</span></a>
+      </div>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
     <a class="tab-label" href="#">Academic &amp; Resources</a>
-    <div class="clip"><div class="drawer"><div class="tray">
-      <a class="item" href="#">Course notes</a>
-      <a class="item" href="#">Study guides</a>
-      <a class="item" href="#">Publications</a>
+    <div class="clip"><div class="drawer"><div class="panel">
+      <div class="path"><span><b>~/academic</b> $ ls<span class="blink">_</span></span><span>07 ITEMS</span></div>
+      <div class="group"><h3>textbooks</h3>
+        <a class="entry" href="#"><span>Calculus III: A Working Textbook</span><span>9 CH</span></a>
+        <a class="entry" href="#"><span>Linear Algebra for Engineers</span><span>6 CH</span></a>
+        <a class="entry" href="#"><span>Digital Logic from the Gate Up</span><span>DRAFT</span></a>
+      </div>
+      <div class="group"><h3>study guides</h3>
+        <a class="entry" href="#"><span>ECE lab survival guide</span><span>GUIDE</span></a>
+        <a class="entry" href="#"><span>Exam prep: circuits</span><span>GUIDE</span></a>
+      </div>
+      <div class="group"><h3>for underclassmen</h3>
+        <a class="entry" href="#"><span>First-year CompE resource pack</span><span>PACK</span></a>
+        <a class="entry" href="#"><span>Course-by-course notes index</span><span>INDEX</span></a>
+      </div>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
     <a class="tab-label" href="#">Games &amp; Software</a>
-    <div class="clip"><div class="drawer"><div class="tray">
-      <a class="item" href="#">Projects</a>
-      <a class="item" href="#">Games</a>
-      <a class="item" href="#">Open source</a>
-      <a class="item" href="#">Tools</a>
+    <div class="clip"><div class="drawer"><div class="panel">
+      <div class="path"><span><b>~/builds</b> $ ls<span class="blink">_</span></span><span>06 ITEMS</span></div>
+      <div class="group"><h3>software</h3>
+        <a class="entry" href="#"><span>Lectern: textbook reader</span><span>APP</span></a>
+        <a class="entry" href="#"><span>Sticky notes app</span><span>APP</span></a>
+        <a class="entry" href="#"><span>Desktop overlay</span><span>TOOL</span></a>
+      </div>
+      <div class="group"><h3>games: bent metal studios</h3>
+        <a class="entry" href="#"><span>Breach</span><span>IN DEV</span></a>
+        <a class="entry" href="#"><span>Reject All</span><span>PLAY</span></a>
+        <a class="entry" href="#"><span>Devlog</span><span>LOG</span></a>
+      </div>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
   <div class="tab">
     <a class="tab-label" href="#">Misc</a>
-    <div class="clip"><div class="drawer"><div class="tray">
-      <a class="item" href="#">Blog</a>
-      <a class="item" href="#">Photography</a>
-      <a class="item" href="#">Contact</a>
+    <div class="clip"><div class="drawer"><div class="panel">
+      <div class="path"><span><b>~/misc</b> $ ls<span class="blink">_</span></span><span>05 ITEMS</span></div>
+      <div class="group"><h3>writing</h3>
+        <a class="entry" href="#"><span>Essay: placeholder title one</span><span>ESSAY</span></a>
+        <a class="entry" href="#"><span>Research note: placeholder</span><span>PAPER</span></a>
+      </div>
+      <div class="group"><h3>other</h3>
+        <a class="entry" href="#"><span>Side project archive</span><span>ARCHIVE</span></a>
+        <a class="entry" href="#"><span>Uses: my setup</span><span>PAGE</span></a>
+        <a class="entry" href="#"><span>Contact form</span><span>FORM</span></a>
+      </div>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
 </nav>
@@ -135,13 +183,13 @@
   import { createAsciiBackground } from './ascii-bg.js';
 
   const bg = createAsciiBackground(document.getElementById('bg'));
-  const cs = getComputedStyle(document.documentElement);
   document.querySelectorAll('.tab').forEach(function (tab) {
+    tab.querySelectorAll('.entry').forEach(function (e, i) { e.style.setProperty('--i', i); });
+    const clip = tab.querySelector('.clip');
     function open() {
       tab.classList.add('open');
-      const r = tab.querySelector('.tab-label').getBoundingClientRect();
-      const h = parseFloat(cs.getPropertyValue('--drawer')) + parseFloat(cs.getPropertyValue('--lip'));
-      bg.setRepelRect(r.left, r.bottom, r.width, h, 1);
+      const r = clip.getBoundingClientRect();
+      bg.setRepelRect(r.left, r.top, r.width, r.height, 1);
     }
     function close() { tab.classList.remove('open'); bg.clearRepelRect(); }
     tab.addEventListener('pointerenter', open);
