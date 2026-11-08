@@ -1,6 +1,6 @@
 # ascii-bg
 
-Animated ASCII crystal background. Vanilla JS + WebGL2, no build step, no dependencies.
+Animated ASCII background: lit, pebble-shaped blobs that swell, hold and dissolve into dots. Vanilla JS + WebGL2, no build step, no dependencies.
 
 ## Use
 
@@ -29,3 +29,6 @@ Options: `cellWidth` (8), `cellHeight` (14), `maxDpr` (2).
 
 Without WebGL2 the call returns no-op methods and the canvas stays plain black. The mouse
 warp needs no setup; the canvas may have `pointer-events: none` (the window is listened to).
+
+ES modules do not load from `file://` in Chrome; serve the folder over http (for example
+`npx http-server`).

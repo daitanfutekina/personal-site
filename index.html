@@ -3,68 +3,166 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your Name</title>
+<title>Liam Grant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Archivo: a grotesque with a width axis. Its expanded cut gives the tabs and name a wide, poster-like
+     voice that suits the monospaced ASCII backdrop without looking like a default UI font. -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" rel="stylesheet">
 <style>
-  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; }
+  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; --tabh: clamp(56px, 11vh, 110px); --drawer: 300px; --lip: 40px; }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: #000; color: #e8e8e8;
-    font-family: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; }
+  html, body { margin: 0; height: 100%; background: #000; color: #f2f2f2; font-family: "Archivo", system-ui, sans-serif; overflow: hidden; }
   #bg { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; pointer-events: none; }
 
-  .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); }
+  /* ---- tabs + drawers ---- */
+  .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: grid; grid-template-columns: repeat(4, 1fr); }
   .tab { position: relative; --c: var(--red); }
   .tab:nth-child(2) { --c: var(--green); }
   .tab:nth-child(3) { --c: var(--blue); }
   .tab:nth-child(4) { --c: var(--yellow); }
-  .tab > a { display: block; padding: 14px 8px; text-align: center; background: var(--c); color: #111;
-    font-weight: 700; letter-spacing: .04em; text-decoration: none; }
-  .panel { position: absolute; top: 100%; left: 0; width: 100%; height: 300px; padding: 22px 24px;
-    background: rgba(0, 0, 0, .72); border-top: 3px solid var(--c);
-    visibility: hidden; opacity: 0; transition: opacity .25s ease, visibility .25s; }
-  .tab:hover .panel, .tab:focus-within .panel { visibility: visible; opacity: 1; }
-  .panel a { display: block; padding: 10px 0; color: var(--c); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.12); }
-  .panel a:hover, .panel a:focus-visible { color: #fff; outline: none; }
+  .tab-label { position: relative; z-index: 3; display: flex; align-items: center; justify-content: center; height: var(--tabh);
+    background: var(--c); color: #141414; text-decoration: none; text-transform: uppercase; text-align: center;
+    font-stretch: 125%; font-weight: 700; font-size: clamp(14px, 1.5vw, 26px); letter-spacing: .01em;
+    border: 3px solid #2a2a2a; border-left-width: 0; }
+  .tab:first-child .tab-label { border-left-width: 3px; }
 
-  .hero { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; text-align: center; pointer-events: none; }
-  .hero::before { content: ""; position: absolute; width: min(1000px, 96vw); height: min(560px, 70vh);
-    background: radial-gradient(ellipse at center, rgba(0,0,0,.9) 0%, rgba(0,0,0,.72) 38%, rgba(0,0,0,0) 70%); }
+  /* The clip hides the drawer above the tab's bottom edge; only the front lip shows at rest. */
+  .clip { position: absolute; top: calc(var(--tabh) - 3px); left: 0; width: 100%; height: calc(var(--drawer) + var(--lip));
+    overflow: hidden; pointer-events: none; z-index: 2; }
+  .drawer { position: absolute; inset: 0; pointer-events: auto; transform: translateY(calc(-100% + var(--lip) + 3px));
+    transition: transform 350ms cubic-bezier(.2,.85,.25,1); display: flex; flex-direction: column; }
+  .tab.open .drawer { transform: translateY(0); }
+
+  .tray { position: relative; flex: 1; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; gap: 0; padding: 0 22px;
+    background: linear-gradient(#000a 0, #0000 45%), color-mix(in srgb, var(--c) 32%, #0d0d0d);
+    box-shadow: inset 14px 0 18px -8px #000c, inset -14px 0 18px -8px #000c, inset 0 22px 24px -10px #000d;
+    border-left: 4px solid color-mix(in srgb, var(--c) 55%, #000); border-right: 4px solid color-mix(in srgb, var(--c) 55%, #000); }
+  .tray::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 26px; background: linear-gradient(#0000, #0008); }
+
+  /* manila folders standing in the drawer */
+  .folder { position: relative; flex: 0 0 auto; width: 23%; max-width: 150px; height: 190px; margin: 0 -5px; color: #3b2a10; text-decoration: none;
+    transition: transform .18s ease; display: block; }
+  .folder:nth-child(1) { transform: translateY(14px); }
+  .folder:nth-child(2) { transform: translateY(0); }
+  .folder:nth-child(3) { transform: translateY(20px); }
+  .folder:nth-child(4) { transform: translateY(6px); }
+  .folder:hover, .folder:focus-visible { transform: translateY(-12px); outline: none; }
+  .folder .body { position: absolute; left: 0; right: 0; bottom: 0; top: 22px; background: linear-gradient(#f0d89c, #e2bf7c);
+    border: 2px solid #b98f45; border-radius: 4px 8px 4px 4px; box-shadow: 3px 0 6px #0006; padding: 34px 10px 0; font-weight: 700;
+    font-stretch: 112%; font-size: 14px; line-height: 1.15; text-transform: uppercase; }
+  .folder .body::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 2px; background: #b98f4577; }
+  .folder .label { position: absolute; top: 0; height: 26px; width: 58%; left: 6%; background: #f0d89c; border: 2px solid #b98f45; border-bottom: 0;
+    border-radius: 6px 6px 0 0; font-size: 11px; font-weight: 700; font-stretch: 112%; text-transform: uppercase; padding: 5px 6px; white-space: nowrap; overflow: hidden; }
+  .folder:nth-child(even) .label { left: 36%; }
+
+  .front { position: relative; flex: 0 0 var(--lip); height: var(--lip); background: color-mix(in srgb, var(--c) 78%, #000);
+    border: 3px solid #2a2a2a; border-top-color: color-mix(in srgb, var(--c) 40%, #000); border-radius: 0 0 14px 14px;
+    box-shadow: 0 8px 18px #000a; display: flex; align-items: center; justify-content: center; }
+  .handle { width: 46%; height: 16px; border-radius: 10px; background: var(--c); border: 3px solid #2a2a2a;
+    box-shadow: inset 0 -4px 0 #0003, 0 2px 0 #0004; }
+
+  /* ---- hero ---- */
+  .hero { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; text-align: center; pointer-events: none; padding-top: var(--tabh); }
+  .hero::before { content: ""; position: absolute; width: min(1100px, 98vw); height: min(520px, 62vh);
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.92) 0%, rgba(0,0,0,.75) 40%, rgba(0,0,0,0) 72%); }
   .hero div { position: relative; padding: 0 16px; }
-  h1 { margin: 0 0 .3em; font-size: clamp(44px, 9vw, 120px); line-height: 1; letter-spacing: -.02em; color: #fff; }
-  p { margin: 0; font-size: clamp(14px, 2vw, 22px); color: #cfcfcf; }
+  h1 { margin: 0 0 .15em; font-stretch: 125%; font-weight: 800; font-size: clamp(40px, 6.4vw, 104px); line-height: 1; letter-spacing: .01em; color: #fff; text-transform: uppercase; }
+  .hero p { margin: 0; font-weight: 400; font-stretch: 100%; font-size: clamp(16px, 2.4vw, 40px); color: #fff; }
+
+  /* ---- bottom row ---- */
+  .bottom { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 clamp(12px, 2.5vw, 40px) clamp(12px, 2.2vh, 28px); gap: 20px; pointer-events: none; }
+  .bottom > * { pointer-events: auto; }
+  .icons { display: flex; gap: 14px; flex: 0 0 auto; }
+  .icons a { width: clamp(52px, 4.4vw, 76px); height: clamp(52px, 4.4vw, 76px); display: grid; place-items: center; border-radius: 50%; color: #141414;
+    transition: transform .15s ease; }
+  .icons a:hover { transform: translateY(-4px); }
+  .icons a:nth-child(1) { background: var(--yellow); }
+  .icons a:nth-child(2) { background: var(--blue); border-radius: 12px; }
+  .icons a:nth-child(3) { background: var(--green); }
+  .icons svg { width: 62%; height: 62%; fill: currentColor; }
+  .featured { flex: 1 1 auto; max-width: 810px; margin: 0 auto; height: clamp(46px, 7vh, 66px); display: grid; place-items: center; background: #d9d9d9; color: #111;
+    border: 3px solid #3a3a3a; border-radius: 14px; font-stretch: 112%; font-weight: 700; font-size: clamp(14px, 1.6vw, 26px); text-transform: uppercase; text-decoration: none; }
+  .logo { flex: 0 0 auto; width: clamp(96px, 9vw, 160px); height: clamp(96px, 9vw, 160px); border-radius: 50%; background: var(--red); display: grid; place-items: center; }
+  .logo img { width: 84%; height: 84%; object-fit: contain; }
+  @media (max-width: 760px) { .tab-label { font-size: 11px; } .featured { display: none; } .folder .body { font-size: 11px; } }
 </style>
 </head>
 <body>
 <canvas id="bg"></canvas>
 
 <nav class="tabs">
-  <div class="tab"><a href="#">Resume</a>
-    <div class="panel"><a href="#">Download PDF</a><a href="#">Experience</a><a href="#">Education</a><a href="#">Skills</a></div></div>
-  <div class="tab"><a href="#">Academic &amp; Resources</a>
-    <div class="panel"><a href="#">Course notes</a><a href="#">Study guides</a><a href="#">Publications</a></div></div>
-  <div class="tab"><a href="#">Software</a>
-    <div class="panel"><a href="#">Projects</a><a href="#">Games</a><a href="#">Open source</a><a href="#">Tools</a></div></div>
-  <div class="tab"><a href="#">Misc</a>
-    <div class="panel"><a href="#">Blog</a><a href="#">Photography</a><a href="#">Contact</a></div></div>
+  <div class="tab">
+    <a class="tab-label" href="#">Resume</a>
+    <div class="clip"><div class="drawer"><div class="tray">
+      <a class="folder" href="#"><span class="label">Resume</span><span class="body">Download PDF</span></a>
+      <a class="folder" href="#"><span class="label">Work</span><span class="body">Experience</span></a>
+      <a class="folder" href="#"><span class="label">School</span><span class="body">Education</span></a>
+      <a class="folder" href="#"><span class="label">Tools</span><span class="body">Skills</span></a>
+    </div><div class="front"><span class="handle"></span></div></div></div>
+  </div>
+  <div class="tab">
+    <a class="tab-label" href="#">Academic &amp; Resources</a>
+    <div class="clip"><div class="drawer"><div class="tray">
+      <a class="folder" href="#"><span class="label">Notes</span><span class="body">Course notes</span></a>
+      <a class="folder" href="#"><span class="label">Study</span><span class="body">Study guides</span></a>
+      <a class="folder" href="#"><span class="label">Papers</span><span class="body">Publications</span></a>
+    </div><div class="front"><span class="handle"></span></div></div></div>
+  </div>
+  <div class="tab">
+    <a class="tab-label" href="#">Games &amp; Software</a>
+    <div class="clip"><div class="drawer"><div class="tray">
+      <a class="folder" href="#"><span class="label">Code</span><span class="body">Projects</span></a>
+      <a class="folder" href="#"><span class="label">Play</span><span class="body">Games</span></a>
+      <a class="folder" href="#"><span class="label">Open</span><span class="body">Open source</span></a>
+      <a class="folder" href="#"><span class="label">Kit</span><span class="body">Tools</span></a>
+    </div><div class="front"><span class="handle"></span></div></div></div>
+  </div>
+  <div class="tab">
+    <a class="tab-label" href="#">Misc</a>
+    <div class="clip"><div class="drawer"><div class="tray">
+      <a class="folder" href="#"><span class="label">Blog</span><span class="body">Blog</span></a>
+      <a class="folder" href="#"><span class="label">Photo</span><span class="body">Photography</span></a>
+      <a class="folder" href="#"><span class="label">Hello</span><span class="body">Contact</span></a>
+    </div><div class="front"><span class="handle"></span></div></div></div>
+  </div>
 </nav>
 
 <main class="hero">
   <div>
-    <h1>Your Name</h1>
+    <h1>Liam Grant</h1>
     <p>Computer engineer, law student, and game dev</p>
   </div>
 </main>
+
+<div class="bottom">
+  <div class="icons">
+    <a href="#" aria-label="GitHub"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+    <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><circle cx="5.2" cy="5.2" r="2.2"/><rect x="3.3" y="9" width="3.8" height="11"/><path d="M9.5 9h3.6v1.6c.6-1.1 1.9-1.9 3.6-1.9 3.4 0 4.3 2.2 4.3 5.1V20h-3.8v-5.3c0-1.4-.3-2.4-1.7-2.4-1.5 0-2.2 1-2.2 2.5V20H9.5z"/></svg></a>
+    <a href="#" aria-label="Email"><svg viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1.6 2 7.4 5.6L19.4 7zM4 9.2V17h16V9.2l-8 6z"/></svg></a>
+  </div>
+  <a class="featured" href="#">Misc project being pushed</a>
+  <a class="logo" href="#" aria-label="Bent Metal Studios"><img src="assets/bent-metal-logo-transparent.png" alt="Bent Metal Studios"></a>
+</div>
 
 <script type="module">
   import { createAsciiBackground } from './ascii-bg.js';
 
   const bg = createAsciiBackground(document.getElementById('bg'));
+  const cs = getComputedStyle(document.documentElement);
   document.querySelectorAll('.tab').forEach(function (tab) {
-    var panel = tab.querySelector('.panel');
-    function open() { var r = panel.getBoundingClientRect(); bg.setRepelRect(r.left, r.top, r.width, r.height, 1); }
+    function open() {
+      tab.classList.add('open');
+      const r = tab.querySelector('.tab-label').getBoundingClientRect();
+      const h = parseFloat(cs.getPropertyValue('--drawer')) + parseFloat(cs.getPropertyValue('--lip'));
+      bg.setRepelRect(r.left, r.bottom, r.width, h, 1);
+    }
+    function close() { tab.classList.remove('open'); bg.clearRepelRect(); }
     tab.addEventListener('pointerenter', open);
     tab.addEventListener('focusin', open);
-    tab.addEventListener('pointerleave', function () { bg.clearRepelRect(); });
-    tab.addEventListener('focusout', function () { bg.clearRepelRect(); });
+    tab.addEventListener('pointerleave', close);
+    tab.addEventListener('focusout', close);
   });
 </script>
 </body>

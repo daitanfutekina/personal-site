@@ -1,13 +1,13 @@
 /*
  * ascii-bg.js - animated ASCII crystal background (WebGL2, no dependencies).
  *
- * Pass 1 renders a faceted, ebbing Voronoi height field into a tiny framebuffer
+ * Pass 1 renders a ebbing field of lit pebble-shaped blobs into a tiny framebuffer
  * (one texel per character cell). Pass 2 draws glyphs from a canvas-generated
  * atlas, with edge-aware glyphs (/ \ | - _) and colour fringing on edges only.
  *
  * Import createAsciiBackground from this dependency-free ES module.
  */
-  var RAMP = " .'`,:;-~+=?Ik!I/|HX$#@8";
+  var RAMP = " .;ckI?HX$8";
   var EDGE_GLYPHS = '-\\|/_'; // atlas indices RAMP.length + 0..4
 
   var VERT = '#version 300 es\n' +
@@ -15,51 +15,50 @@
     'gl_Position=vec4(p*2.-1.,0.,1.);}';
 
   // ---- Pass 1: the field. Output RGBA8 per cell: R=brightness, G=edge strength,
-  // B=gradient angle, A=brightness for edge glyphs. Coordinates are device px, y down.
+  // B=gradient angle of the blob silhouette, A=brightness for edge glyphs.
+  // Coordinates are device px, y down.
   var FIELD_FRAG = '#version 300 es\nprecision highp float;\n' +
   'uniform vec2 uCell;uniform float uT,uDpr,uMouseAmt,uRectAmt,uRectPush;\n' +
-  'uniform vec2 uMouse;uniform vec4 uRect;out vec4 o;float gDots=1.;\n' +
-  'float h11(float p){p=fract(p*.1031);p*=p+33.33;p*=p+p;return fract(p);}\n' +
+  'uniform vec2 uMouse;uniform vec4 uRect;out vec4 o;\n' +
   'float h21(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}\n' +
   'vec2 h22(vec2 p){vec3 q=fract(vec3(p.xyx)*vec3(.1031,.103,.0973));q+=dot(q,q.yzx+33.33);return fract((q.xx+q.yz)*q.zy);}\n' +
   'float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);\n' +
   ' return mix(mix(h21(i),h21(i+vec2(1,0)),f.x),mix(h21(i+vec2(0,1)),h21(i+1.),f.x),f.y);}\n' +
-  // One depth layer: Voronoi crystals that swell, sharpen and dissolve.
-  'float layer(vec2 P,float size,float seed,float speed,float gain){\n' +
-  ' vec2 q=P/(size*uDpr)+vec2(.021,.013)*uT*speed+seed*3.7;\n' +
-  ' vec2 ip=floor(q),fp=fract(q);float f1=9.,f2=9.;vec2 id1=vec2(0),pt1=vec2(0);\n' +
+  // One depth layer: one pebble-shaped blob per jittered grid cell. Returns (brightness, silhouette mass).
+  'vec2 layer(vec2 P,vec2 size,float seed,float speed,float gain){\n' +
+  ' vec2 q=P/(size*uDpr)+vec2(.017,.009)*uT*speed+seed*3.7;\n' +
+  ' vec2 ip=floor(q),fp=fract(q),best=vec2(0);\n' +
   ' for(int j=-1;j<=1;j++)for(int i=-1;i<=1;i++){\n' +
-  '  vec2 g=vec2(i,j),id=ip+g,h=h22(id+seed);\n' +
-  '  vec2 w=vec2(sin(uT*.23*speed*(.6+h.x)+6.283*h.y),cos(uT*.19*speed*(.6+h.y)+6.283*h.x));\n' +
-  '  vec2 pt=g+.5+(h-.5)*.7+w*.12;float d=length(pt-fp);\n' +
-  '  if(d<f1){f2=f1;f1=d;id1=id;pt1=pt;}else if(d<f2){f2=d;}\n' +
+  '  vec2 g=vec2(i,j),id=ip+g+seed;\n' +
+  '  vec2 hc=h22(id+31.7);\n' +
+  '  float u=uT/(mix(7.,13.,hc.x)/speed)+hc.y,cyc=mod(floor(u),64.),x=fract(u);\n' + // life cycle: grow, hold, dissolve
+  '  vec2 ha=h22(id+cyc*vec2(5.3,2.9)+57.1),hb=h22(id+cyc*vec2(3.1,6.7)+11.3);\n' +
+  '  float e=smoothstep(0.,.3,x)*(1.-smoothstep(.62,1.,x))*step(ha.x,.78);\n' +
+  '  if(e<.002)continue;\n' +
+  '  vec2 c=g+.5+(ha.yx-.5)*.3+.04*vec2(sin(uT*.2*speed+hc.y*6.3),cos(uT*.17*speed+hc.x*6.3));\n' +
+  '  vec2 d=(fp-c)*size;float rot=(hb.y-.5)*.5,cs=cos(rot),sn=sin(rot);\n' +
+  '  d=vec2(cs*d.x+sn*d.y,-sn*d.x+cs*d.y);\n' +
+  '  vec2 r=vec2(mix(190.,300.,hb.x),0.);r.y=r.x*mix(.36,.5,h21(id+cyc*1.7+8.));\n' +
+  '  r*=mix(.45,1.,smoothstep(0.,.5,e));\n' + // swell
+  '  vec2 w=(fp-c)*size;\n' +
+  '  vec2 uv=d/r+(vec2(vn(P*.006+seed+uT*.03),vn(P*.006+seed+5.-uT*.03))-.5)*.14;\n' +
+  '  float dd=pow(pow(abs(uv.x),2.4)+pow(abs(uv.y),2.4),1./2.4);\n' + // pebble / lens outline
+  '  if(dd>=1.)continue;\n' +
+  '  float mass=1.-smoothstep(.955,1.,dd);\n' +
+  '  float z=sqrt(max(1.-dd*dd,0.));\n' +
+  '  vec3 n=normalize(vec3(sign(uv)*pow(abs(uv),vec2(2.))*1.5,z+.1));\n' +
+  '  float lit=.1+.95*pow(max(dot(n,normalize(vec3(-.2,-.6,.75))),0.),1.1);\n' +
+  // Dissolve: sparse dots that thin out slowly.
+  '  float k=smoothstep(0.,.6,e),tk=uT*.25,fk=smoothstep(0.,1.,fract(tk));\n' +
+  '  vec2 tid=floor(P/uCell);\n' +
+  '  float dn=mix(h21(tid+floor(tk)*7.3),h21(tid+(floor(tk)+1.)*7.3),fk);\n' +
+  '  float vis=k>.98?1.:step(dn,k)*(.5+.5*k);\n' +
+  '  best=max(best,vec2(lit*mass*vis*gain,mass*smoothstep(.2,.55,e)));\n' +
   ' }\n' +
-  ' float b=f2-f1;\n' + // distance-to-border proxy: its contours are shrinking polygons
-  ' vec2 hc=h22(id1+seed+31.7);\n' +
-  ' float u=uT/(mix(6.,12.,hc.x)/speed)+hc.y;float cyc=mod(floor(u),64.),x=fract(u);\n' +
-  ' vec2 hn=h22(id1+seed+cyc*vec2(5.3,2.9)+57.1);\n' +
-  ' float act=step(hn.x,.7);\n' +
-  ' float e=smoothstep(0.,.32,x)*(1.-smoothstep(.62,1.,x))*act;\n' +
-  ' float th=.012+(1.-e)*.9+(vn(q*2.1+seed)-.5)*.14;\n' +
-  ' float m=smoothstep(th,th+.03,b)*smoothstep(0.,.06,e);\n' +
-  // Pyramid facets: six sectors around the crystal centre, each with its own normal.
-  ' vec2 rel=fp-pt1;float rot=hn.y*6.2832;\n' +
-  ' float a2=mod(atan(rel.y,rel.x)+rot,6.2832),sec=floor(a2/6.2832*6.);\n' +
-  ' float mid=(sec+.5)/6.*6.2832-rot,slope=.55+.9*h11(sec*3.17+hn.x*91.);\n' +
-  ' vec3 n=vec3(vec2(cos(mid),sin(mid))*slope+(vec2(vn(q*4.+seed),vn(q*4.+seed+9.))-.5)*.5,1.);\n' +
-  ' n=normalize(n);vec3 L=normalize(vec3(-.5,-.55,.7));\n' +
-  ' float df=max(dot(n,L),0.);\n' +
-  ' float sp=pow(max(dot(n,normalize(L+vec3(0,0,1))),0.),28.)*.5;\n' +
-  ' float lit=(.1+.78*pow(df,1.2)+sp*.8)*(.72+.4*smoothstep(0.,.3,b));\n' +
-  // Dissolve: sparse dim dots that fade in and out slowly (no hard per-frame flicker).
-  ' float da=smoothstep(.5,.7,x)*(1.-smoothstep(.86,1.,x))*act*(1.-smoothstep(.6,.9,f1));\n' +
-  ' vec2 tid=floor(P/uCell);float tk=uT*.25,fk=smoothstep(0.,1.,fract(tk));\n' +
-  ' float dn=mix(h21(tid+floor(tk)*7.3),h21(tid+(floor(tk)+1.)*7.3),fk);\n' +
-  ' float dots=(1.-smoothstep(da*.3,da*.3+.06,dn))*(.2+.2*lit)*step(.001,da)*gDots;\n' +
-  ' return max(clamp(lit,0.,1.)*m*gain,dots*gain);\n' +
+  ' return best;\n' +
   '}\n' +
-  // Warps (mouse + repel rect) plus clearing of the repel rect, then both layers.
-  'float field(vec2 P){\n' +
+  // Mouse / repel-rect warps, then both layers.
+  'vec2 field(vec2 P){\n' +
   ' vec2 Pf=P,Pb=P;float clr=1.;\n' +
   ' vec2 d=P-uMouse;float f=1.-smoothstep(0.,150.*uDpr,length(d));\n' +
   ' vec2 wm=d*(.9*f*f*uMouseAmt);Pf-=wm;Pb-=wm*.6;\n' +
@@ -71,19 +70,18 @@
   '  Pf-=nr*pu;Pb-=nr*pu*.6;\n' +
   '  clr=1.-uRectAmt*(1.-smoothstep(0.,36.*uDpr,sd));\n' +
   ' }\n' +
-  ' float fr=layer(Pf,320.,1.,1.,1.),bk=layer(Pb,520.,7.,.55,.34);\n' +
-  ' return (fr+bk*(1.-fr))*clr;\n' +
+  ' vec2 fr=layer(Pf,vec2(700.,380.),1.,1.,1.),bk=layer(Pb,vec2(1000.,560.),7.,.55,.4);\n' +
+  ' return vec2(fr.x+bk.x*(1.-fr.x),fr.y)*clr;\n' +
   '}\n' +
   'void main(){\n' +
   ' vec2 cell=floor(gl_FragCoord.xy),P=(cell+.5)*uCell;\n' +
-  ' gDots=0.;float f0=field(P),fx=field(P+vec2(uCell.x,0)),fy=field(P+vec2(0,uCell.y));\n' +
-  ' gDots=1.;float fd=field(P);\n' +
-  ' vec2 gp=vec2((fx-f0)/uCell.x,(fy-f0)/uCell.y);\n' +
-  ' float e=smoothstep(.09,.24,length(gp)*uCell.y);\n' +
-  ' o=vec4(clamp(fd,0.,1.),e,atan(gp.y,gp.x)/6.2832+.5,clamp(max(fd,max(fx,fy))*1.15,0.,1.));\n' +
+  ' vec2 f0=field(P),fx=field(P+vec2(uCell.x,0)),fy=field(P+vec2(0,uCell.y));\n' +
+  ' vec2 gp=vec2((fx.y-f0.y)/uCell.x,(fy.y-f0.y)/uCell.y);\n' + // silhouette gradient only
+  ' float e=smoothstep(.12,.34,length(gp)*uCell.y);\n' +
+  ' o=vec4(clamp(f0.x,0.,1.),e,atan(gp.y,gp.x)/6.2832+.5,clamp(max(f0.x,max(fx.x,fy.x))*1.2,0.,1.));\n' +
   '}';
 
-  // ---- Pass 2: glyphs.
+  // ---- Pass 2: glyphs. Brightness is quantized by the ramp, so same-glyph runs form bands.
   var GLYPH_FRAG = '#version 300 es\nprecision highp float;\n' +
   'uniform sampler2D uField,uAtlas;uniform vec2 uCell,uRes;uniform vec2 uGrid;\n' +
   'uniform float uT,uDpr,uN,uNR;out vec4 o;\n' +
@@ -96,18 +94,18 @@
   ' vec4 t=texelFetch(uField,ivec2(clamp(cell,vec2(0),uGrid-1.)),0);\n' +
   ' float e=t.g,ang=(t.b-.5)*6.2832;vec2 gd=vec2(cos(ang),sin(ang));\n' +
   ' float idx,grey;\n' +
-  ' if(e>.45){\n' + // edge glyph from the edge tangent (perpendicular to the gradient)
-  '  float a=mod(atan(gd.x,-gd.y),3.14159),s=floor(a/.7854+.5);\n' + // atan(tan.y,tan.x), tan=(-gd.y,gd.x)
+  ' if(e>.45){\n' + // outline glyph from the edge tangent (perpendicular to the gradient)
+  '  float a=mod(atan(gd.x,-gd.y),3.14159),s=floor(a/.7854+.5);\n' +
   '  float k=s==1.?1.:(s==2.?2.:(s==3.?3.:(gd.y<0.?4.:0.)));\n' +
-  '  idx=uNR+k;grey=.4+.6*t.a;\n' +
+  '  idx=uNR+k;grey=.5+.5*t.a;\n' +
   ' }else{\n' +
-  '  idx=t.r<.02?0.:floor(clamp(t.r,0.,1.)*(uNR-1.)+.5);grey=.55+.45*t.r;\n' +
+  '  idx=t.r<.05?0.:floor(clamp(t.r,0.,1.)*(uNR-1.)+.5);grey=.62+.38*t.r;\n' +
   ' }\n' +
-  ' vec2 off=gd*1.7*uDpr/uCell;\n' +
+  ' vec2 off=gd*1.5*uDpr/uCell;\n' +
   ' float ph=uT*.05+cell.x/uGrid.x*.35,sf=smoothstep(0.,1.,fract(ph));int i=int(mod(floor(ph),4.));\n' +
   ' vec3 ca=mix(PAL[i],PAL[(i+1)%4],sf),cb=mix(PAL[(i+2)%4],PAL[(i+3)%4],sf);\n' +
-  ' vec3 col=vec3(.93,.95,.97)*grey*gm(l,idx)*(1.-.5*e);\n' +
-  ' col+=e*grey*(ca*gm(l-off,idx)*1.6+cb*gm(l+off,idx)*1.1);\n' +
+  ' vec3 col=vec3(.92,.94,.96)*grey*gm(l,idx);\n' +
+  ' col+=e*(ca*gm(l-off,idx)*.9+cb*gm(l+off,idx)*.7);\n' +
   ' o=vec4(min(col,1.),1.);\n' +
   '}';
 
@@ -136,7 +134,7 @@
   function createAsciiBackground(canvas, options) {
     var noop = { setRepelRect: function () {}, clearRepelRect: function () {}, setPaused: function () {}, destroy: function () {} };
     var opts = options || {};
-    var cellW = opts.cellWidth || 8, cellH = opts.cellHeight || 14, maxDpr = opts.maxDpr || 2;
+    var cellW = opts.cellWidth || 8, cellH = opts.cellHeight || 18, maxDpr = opts.maxDpr || 2;
 
     var gl = null, pField, pGlyph;
     try {
@@ -164,8 +162,10 @@
       g.fillStyle = '#fff';
       g.textAlign = 'center';
       g.textBaseline = 'middle';
-      g.font = Math.floor(Math.min(ch * 0.92, cw / 0.6)) + 'px Consolas, "Courier New", ui-monospace, Menlo, monospace';
-      for (var i = 0; i < chars.length; i++) g.fillText(chars[i], (i + 0.5) * cw, ch * 0.52);
+      var fp = Math.floor(cw / 0.6), sy = ch * 0.78 / (fp * 0.72);
+      g.font = fp + 'px Consolas, "Courier New", ui-monospace, Menlo, monospace';
+      g.setTransform(1, 0, 0, sy, 0, 0); // tall glyphs, like the reference
+      for (var i = 0; i < chars.length; i++) g.fillText(chars[i], (i + 0.5) * cw, ch * 0.5 / sy);
       gl.bindTexture(gl.TEXTURE_2D, atlasTex);
       gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
