@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Name</title>
+<style>
+  :root { --red:#FF6B6B; --green:#7BE495; --blue:#5DADEC; --yellow:#FFE66D; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #000; color: #e8e8e8;
+    font-family: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; }
+  #bg { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #000; pointer-events: none; }
+
+  .tabs { position: fixed; top: 0; left: 0; right: 0; z-index: 2; display: grid; grid-template-columns: repeat(4, 1fr); }
+  .tab { position: relative; --c: var(--red); }
+  .tab:nth-child(2) { --c: var(--green); }
+  .tab:nth-child(3) { --c: var(--blue); }
+  .tab:nth-child(4) { --c: var(--yellow); }
+  .tab > a { display: block; padding: 14px 8px; text-align: center; background: var(--c); color: #111;
+    font-weight: 700; letter-spacing: .04em; text-decoration: none; }
+  .panel { position: absolute; top: 100%; left: 0; width: 100%; height: 300px; padding: 22px 24px;
+    background: rgba(0, 0, 0, .72); border-top: 3px solid var(--c);
+    visibility: hidden; opacity: 0; transition: opacity .25s ease, visibility .25s; }
+  .tab:hover .panel, .tab:focus-within .panel { visibility: visible; opacity: 1; }
+  .panel a { display: block; padding: 10px 0; color: var(--c); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,.12); }
+  .panel a:hover, .panel a:focus-visible { color: #fff; outline: none; }
+
+  .hero { position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; text-align: center; pointer-events: none; }
+  .hero::before { content: ""; position: absolute; width: min(1000px, 96vw); height: min(560px, 70vh);
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.9) 0%, rgba(0,0,0,.72) 38%, rgba(0,0,0,0) 70%); }
+  .hero div { position: relative; padding: 0 16px; }
+  h1 { margin: 0 0 .3em; font-size: clamp(44px, 9vw, 120px); line-height: 1; letter-spacing: -.02em; color: #fff; }
+  p { margin: 0; font-size: clamp(14px, 2vw, 22px); color: #cfcfcf; }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<nav class="tabs">
+  <div class="tab"><a href="#">Resume</a>
+    <div class="panel"><a href="#">Download PDF</a><a href="#">Experience</a><a href="#">Education</a><a href="#">Skills</a></div></div>
+  <div class="tab"><a href="#">Academic &amp; Resources</a>
+    <div class="panel"><a href="#">Course notes</a><a href="#">Study guides</a><a href="#">Publications</a></div></div>
+  <div class="tab"><a href="#">Software</a>
+    <div class="panel"><a href="#">Projects</a><a href="#">Games</a><a href="#">Open source</a><a href="#">Tools</a></div></div>
+  <div class="tab"><a href="#">Misc</a>
+    <div class="panel"><a href="#">Blog</a><a href="#">Photography</a><a href="#">Contact</a></div></div>
+</nav>
+
+<main class="hero">
+  <div>
+    <h1>Your Name</h1>
+    <p>Computer engineer, law student, and game dev</p>
+  </div>
+</main>
+
+<script type="module">
+  import { createAsciiBackground } from './ascii-bg.js';
+
+  const bg = createAsciiBackground(document.getElementById('bg'));
+  document.querySelectorAll('.tab').forEach(function (tab) {
+    var panel = tab.querySelector('.panel');
+    function open() { var r = panel.getBoundingClientRect(); bg.setRepelRect(r.left, r.top, r.width, r.height, 1); }
+    tab.addEventListener('pointerenter', open);
+    tab.addEventListener('focusin', open);
+    tab.addEventListener('pointerleave', function () { bg.clearRepelRect(); });
+    tab.addEventListener('focusout', function () { bg.clearRepelRect(); });
+  });
+</script>
+</body>
+</html>
