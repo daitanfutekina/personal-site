@@ -98,6 +98,31 @@
     border: 3px solid #3a3a3a; border-radius: 14px; font-stretch: 112%; font-weight: 700; font-size: clamp(14px, 1.6vw, 26px); text-transform: uppercase; text-decoration: none; }
   .logo { justify-self: end; width: clamp(96px, 9vw, 160px); height: clamp(96px, 9vw, 160px); border-radius: 50%; background: var(--red); display: grid; place-items: center; }
   .logo img { width: 84%; height: 84%; object-fit: contain; }
+  /* ---- contact popup: same terminal language as the dropdowns ---- */
+  .modal { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+    background: rgba(0,0,0,.6); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s; }
+  .modal.open { opacity: 1; pointer-events: auto; }
+  .term { --c: var(--green); position: relative; width: min(560px, 100%); padding: 16px 18px 18px; font: 13px var(--mono); color: #e9eef2;
+    background: linear-gradient(color-mix(in srgb, var(--c) 9%, transparent) 1px, transparent 1px) 0 0 / 100% 4px, linear-gradient(180deg, #07090b, #0c0f12);
+    border: 2px solid var(--c); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 25%, transparent);
+    transform: translateY(14px) scale(.98); transition: transform .28s cubic-bezier(.2,.85,.25,1); }
+  .modal.open .term { transform: none; }
+  .term .path { margin-bottom: 12px; padding-right: 26px; }
+  .term label { display: block; margin: 12px 0 5px; color: var(--c); font-weight: 700; font-size: 11px; }
+  .term label::before { content: "> "; color: color-mix(in srgb, var(--c) 55%, #000); }
+  .term input, .term textarea { width: 100%; padding: 9px 10px; font: 13px var(--mono); color: #fff; background: #000;
+    border: 1px solid color-mix(in srgb, var(--c) 40%, #000); border-radius: 0; outline: none; caret-color: var(--c); }
+  .term input:focus, .term textarea:focus { border-color: var(--c); box-shadow: inset 3px 0 0 var(--c); }
+  .term textarea { min-height: 150px; resize: vertical; }
+  .term .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; }
+  .term .status { font-size: 12px; color: #9aa7af; min-height: 1em; }
+  .term .status.ok { color: var(--c); } .term .status.err { color: var(--red); }
+  .term button { font: 700 12px var(--mono); padding: 10px 18px; color: var(--ink); background: var(--c); border: 0; cursor: pointer; letter-spacing: .04em; }
+  .term button:disabled { opacity: .5; cursor: progress; }
+  .term .x { position: absolute; top: 8px; right: 10px; padding: 2px 6px; background: none; color: #9aa7af; font-size: 16px; }
+  .term .x:hover { color: #fff; }
+  .hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
   @media (max-width: 760px) { .tab-label { font-size: 11px; } .bottom { grid-template-columns: 1fr 1fr; } .featured { display: none; } }
 </style>
 </head>
@@ -166,7 +191,7 @@
       <div class="group"><h3>other</h3>
         <a class="entry" href="#"><span>Side project archive</span><span>ARCHIVE</span></a>
         <a class="entry" href="#"><span>Uses: my setup</span><span>PAGE</span></a>
-        <a class="entry" href="#"><span>Contact form</span><span>FORM</span></a>
+        <a class="entry" href="#contact" data-contact><span>Contact form</span><span>FORM</span></a>
       </div>
     </div><div class="front"><span class="handle"></span></div></div></div>
   </div>
@@ -181,12 +206,27 @@
 
 <div class="bottom">
   <div class="icons">
-    <a href="#" aria-label="GitHub"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
-    <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><circle cx="5.2" cy="5.2" r="2.2"/><rect x="3.3" y="9" width="3.8" height="11"/><path d="M9.5 9h3.6v1.6c.6-1.1 1.9-1.9 3.6-1.9 3.4 0 4.3 2.2 4.3 5.1V20h-3.8v-5.3c0-1.4-.3-2.4-1.7-2.4-1.5 0-2.2 1-2.2 2.5V20H9.5z"/></svg></a>
-    <a href="#" aria-label="Email"><svg viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1.6 2 7.4 5.6L19.4 7zM4 9.2V17h16V9.2l-8 6z"/></svg></a>
+    <a href="https://github.com/daitanfutekina" target="_blank" rel="noopener" aria-label="GitHub"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+    <a href="https://www.linkedin.com/in/liam-g-673717326/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><circle cx="5.2" cy="5.2" r="2.2"/><rect x="3.3" y="9" width="3.8" height="11"/><path d="M9.5 9h3.6v1.6c.6-1.1 1.9-1.9 3.6-1.9 3.4 0 4.3 2.2 4.3 5.1V20h-3.8v-5.3c0-1.4-.3-2.4-1.7-2.4-1.5 0-2.2 1-2.2 2.5V20H9.5z"/></svg></a>
+    <a href="#contact" id="mail-btn" aria-label="Email me"><svg viewBox="0 0 24 24"><path d="M3 5h18a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zm1.6 2 7.4 5.6L19.4 7zM4 9.2V17h16V9.2l-8 6z"/></svg></a>
   </div>
   <a class="featured" href="#">Misc project being pushed</a>
   <a class="logo" href="#" aria-label="Bent Metal Studios"><img src="assets/bent-metal-logo-transparent.png" alt="Bent Metal Studios"></a>
+</div>
+
+<div class="modal" id="contact" aria-hidden="true">
+  <form class="term" role="dialog" aria-modal="true" aria-labelledby="contact-title" novalidate>
+    <button type="button" class="x" aria-label="Close">&times;</button>
+    <div class="path"><span id="contact-title"><b>~/contact</b> $ mail liam<span class="blink">_</span></span><span>SECURE FORM</span></div>
+    <label for="c-from">your email (so I can reply)</label>
+    <input id="c-from" name="from" type="email" maxlength="200" autocomplete="email" required>
+    <label for="c-subject">subject</label>
+    <input id="c-subject" name="subject" type="text" maxlength="150" required>
+    <label for="c-message">message</label>
+    <textarea id="c-message" name="message" maxlength="5000" required></textarea>
+    <div class="hp" aria-hidden="true"><label>Leave empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <div class="row"><span class="status" role="status"></span><button type="submit">SEND</button></div>
+  </form>
 </div>
 
 <script type="module">
@@ -207,6 +247,42 @@
     tab.addEventListener('pointerleave', close);
     tab.addEventListener('focusout', close);
   });
+
+  // Contact popup. The destination address lives only in the Worker, never in this page.
+  const modal = document.getElementById('contact');
+  const form = modal.querySelector('form');
+  const status = form.querySelector('.status');
+  const sendBtn = form.querySelector('button[type=submit]');
+  function openContact(ev) {
+    if (ev) ev.preventDefault();
+    modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false');
+    setTimeout(function () { form.from.focus(); }, 50);
+  }
+  function closeContact() { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); }
+  document.getElementById('mail-btn').addEventListener('click', openContact);
+  document.querySelectorAll('[data-contact]').forEach(function (a) { a.addEventListener('click', openContact); });
+  form.querySelector('.x').addEventListener('click', closeContact);
+  modal.addEventListener('click', function (ev) { if (ev.target === modal) closeContact(); });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && modal.classList.contains('open')) closeContact(); });
+
+  form.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    status.className = 'status';
+    const data = { from: form.from.value.trim(), subject: form.subject.value.trim(), message: form.message.value.trim(), website: form.website.value };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.from)) { status.textContent = 'Enter a valid email address.'; status.classList.add('err'); return; }
+    if (!data.subject || !data.message) { status.textContent = 'Subject and message are required.'; status.classList.add('err'); return; }
+    sendBtn.disabled = true; status.textContent = 'Sending...';
+    try {
+      const res = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const out = await res.json().catch(function () { return {}; });
+      if (!res.ok) throw new Error(out.error || ('Server returned ' + res.status));
+      status.textContent = 'Sent. I will reply to ' + data.from + '.'; status.classList.add('ok');
+      form.subject.value = ''; form.message.value = '';
+    } catch (err) {
+      status.textContent = 'Not sent: ' + err.message; status.classList.add('err');
+    } finally { sendBtn.disabled = false; }
+  });
+  if (location.hash === '#contact') openContact();
 </script>
 </body>
 </html>

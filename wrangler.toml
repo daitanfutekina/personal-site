@@ -1,0 +1,19 @@
+# Deploy: npx wrangler deploy
+# Before the contact form can send, the domain must be on Cloudflare with Email Routing on,
+# and CONTACT_TO must be a verified destination address in Email Routing.
+name = "liam-grant-site"
+main = "worker/index.js"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./"
+binding = "ASSETS"
+run_worker_first = ["/api/*"]
+
+[vars]
+CONTACT_FROM = "contact@YOUR-DOMAIN"   # replace once you own the domain
+CONTACT_TO = "you@example.com"
+
+[[send_email]]
+name = "CONTACT"
+destination_address = "you@example.com"

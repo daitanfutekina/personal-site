@@ -1,0 +1,8 @@
+worker
+wrangler.toml
+.diff_logs
+.git
+.gitignore
+.assetsignore
+README-ascii-bg.md
+node_modules
