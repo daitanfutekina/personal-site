@@ -106,7 +106,7 @@ function createAsciiBackground(canvas, options) {
   var noop = { setRepelRect: function () {}, clearRepelRect: function () {}, setPaused: function () {}, destroy: function () {} };
   var opts = options || {};
   var cellW = opts.cellWidth || 9, cellH = opts.cellHeight || 18, maxDpr = opts.maxDpr || 2;
-  var cellsAcross = opts.cellsAcross || 10; // Voronoi cells across the screen width
+  var cellsAcross = opts.cellsAcross || 10; // recomputed in resize() unless set
 
   var gl = null, pField, pGlyph;
   try {
@@ -121,7 +121,7 @@ function createAsciiBackground(canvas, options) {
 
   var vao = gl.createVertexArray();
   var fieldTex = null, fbo = gl.createFramebuffer(), atlasTex = gl.createTexture();
-  var W = 0, H = 0, dpr = 1, cw = 0, ch = 0, cols = 0, rows = 0, atlasKey = '';
+  var lastCw = 0, W = 0, H = 0, dpr = 1, cw = 0, ch = 0, cols = 0, rows = 0, atlasKey = '';
 
   function buildAtlas() {
     var c = document.createElement('canvas');
@@ -151,9 +151,14 @@ function createAsciiBackground(canvas, options) {
     dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     var w = Math.max(1, Math.round((r.width || window.innerWidth) * dpr));
     var h = Math.max(1, Math.round((r.height || window.innerHeight) * dpr));
-    cw = Math.max(4, Math.round(cellW * dpr));
-    ch = Math.max(6, Math.round(cellH * dpr));
-    if (w !== W || h !== H) {
+    // Small screens: smaller glyphs and fewer, relatively larger shapes.
+    var cssW = w / dpr, small = cssW < 760;
+    if (!opts.cellsAcross) cellsAcross = Math.max(3.5, Math.min(10, cssW / 150));
+    cw = Math.max(4, Math.round((small && !opts.cellWidth ? 7 : cellW) * dpr));
+    ch = Math.max(6, Math.round((small && !opts.cellHeight ? 14 : cellH) * dpr));
+    var gridChanged = w !== W || h !== H || cw !== lastCw;
+    lastCw = cw;
+    if (gridChanged) {
       W = w; H = h;
       canvas.width = W; canvas.height = H;
       cols = Math.ceil(W / cw); rows = Math.ceil(H / ch);
@@ -184,10 +189,13 @@ function createAsciiBackground(canvas, options) {
     mouse.target = 1;
   }
   function onLeave() { mouse.target = 0; }
+  function onUp(ev) { if (ev.pointerType !== 'mouse') onLeave(); } // a finger lifting ends the warp
   function onResize() { resize(); }
   window.addEventListener('pointermove', onMove);
   document.documentElement.addEventListener('pointerleave', onLeave);
   window.addEventListener('blur', onLeave);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
   window.addEventListener('resize', onResize);
 
   function ease(dt, tau) { return 1 - Math.exp(-dt / tau); }
@@ -268,6 +276,8 @@ function createAsciiBackground(canvas, options) {
       window.removeEventListener('pointermove', onMove);
       document.documentElement.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('blur', onLeave);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
       window.removeEventListener('resize', onResize);
       var lose = gl.getExtension('WEBGL_lose_context');
       if (lose) lose.loseContext();
