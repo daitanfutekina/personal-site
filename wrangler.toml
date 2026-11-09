@@ -4,6 +4,11 @@
 name = "liam-grant-site"
 main = "worker/index.js"
 compatibility_date = "2026-10-01"
+workers_dev = false
+routes = [
+  { pattern = "bentmetalstudios.com", custom_domain = true },
+  { pattern = "www.bentmetalstudios.com", custom_domain = true },
+]
 
 [assets]
 directory = "./"
@@ -11,7 +16,7 @@ binding = "ASSETS"
 run_worker_first = ["/api/*"]
 
 [vars]
-CONTACT_FROM = "contact@YOUR-DOMAIN"   # replace once you own the domain
+CONTACT_FROM = "contact@bentmetalstudios.com"
 CONTACT_TO = "you@example.com"
 
 [[send_email]]
