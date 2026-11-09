@@ -1,5 +1,5 @@
 // Cloudflare Worker: serves the static site and handles POST /api/contact.
-// The destination address is set in wrangler.toml (send_email binding), never in the page.
+// The destination address is the CONTACT_TO secret, never in the page or this repo.
 import { EmailMessage } from 'cloudflare:email';
 
 const json = (body, status = 200) =>
@@ -26,7 +26,7 @@ async function handleContact(request, env) {
   if (!subject || !message) return json({ error: 'Subject and message are required.' }, 400);
 
   const sender = env.CONTACT_FROM; // e.g. contact@yourdomain, on a domain with Email Routing
-  const to = env.CONTACT_TO;       // the verified destination, e.g. you@example.com
+  const to = env.CONTACT_TO;       // the verified destination (a Worker secret)
   const body = `From: ${from}\n\n${message}\n`;
   const raw = [
     `From: Website contact <${sender}>`,

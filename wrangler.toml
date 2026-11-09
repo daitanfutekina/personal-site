@@ -1,6 +1,7 @@
 # Deploy: npx wrangler deploy
 # Before the contact form can send, the domain must be on Cloudflare with Email Routing on,
-# and CONTACT_TO must be a verified destination address in Email Routing.
+# and the CONTACT_TO secret (npx wrangler secret put CONTACT_TO) must be a verified
+# destination address in Email Routing. It is a secret so it stays out of this public repo.
 name = "liam-grant-site"
 main = "worker/index.js"
 compatibility_date = "2026-10-01"
@@ -17,8 +18,6 @@ run_worker_first = ["/api/*"]
 
 [vars]
 CONTACT_FROM = "contact@bentmetalstudios.com"
-CONTACT_TO = "you@example.com"
 
 [[send_email]]
 name = "CONTACT"
-destination_address = "you@example.com"
