@@ -1,3 +1,4 @@
 .diff_logs/
 node_modules/
 .wrangler/
+downloads/build.sh
